@@ -610,9 +610,6 @@ static struct mp_image *decode(struct sh_video *sh, struct demux_packet *packet,
     int dr1 = ctx->do_dr1;
     AVPacket pkt;
 
-    if (len <= 0)
-        return NULL;        // skipped frame
-
     if (!dr1)
         avctx->draw_horiz_band = NULL;
 
@@ -821,6 +818,8 @@ static int control(sh_video_t *sh, int cmd, void *arg, ...)
         return CONTROL_TRUE;
     case VDCTRL_QUERY_UNSEEN_FRAMES:;
         int delay = avctx->has_b_frames;
+        if (avctx->active_thread_type & FF_THREAD_FRAME)
+            delay += avctx->thread_count - 1;
         return delay + 10;
     case VDCTRL_RESET_ASPECT:
         if (ctx->vo_initialized)
