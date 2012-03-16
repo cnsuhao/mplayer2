@@ -218,7 +218,6 @@ SRCS_COMMON = asxparser.c \
               codec-cfg.c \
               cpudetect.c \
               defaultopts.c \
-              edl.c \
               fmt-conversion.c \
               m_config.c \
               m_option.c \
@@ -404,6 +403,7 @@ SRCS_COMMON = asxparser.c \
               libmpdemux/yuv4mpeg_ratio.c \
               libvo/osd.c \
               osdep/numcores.c \
+              osdep/io.c \
               osdep/$(GETCH) \
               osdep/$(TIMER) \
               stream/open.c \
