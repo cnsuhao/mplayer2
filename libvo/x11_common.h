@@ -36,6 +36,9 @@ struct vo_x11_state {
     int display_is_local;
     int depthonscreen;
 
+    XIM xim;
+    XIC xic;
+
     GC vo_gc;
 
     struct xv_ck_info_s {
@@ -45,7 +48,6 @@ struct vo_x11_state {
     unsigned long xv_colorkey;
     unsigned int xv_port;
 
-    int vo_mouse_autohide;
     int wm_type;
     int fs_type;
     int window_state;

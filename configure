@@ -209,13 +209,11 @@ dragonfly() { issystem "DragonFly"; }
 freebsd()   { issystem "FreeBSD" || issystem "GNU/kFreeBSD"; }
 gnu()       { issystem "GNU"; }
 hpux()      { issystem "HP-UX"; }
-irix()      { issystem "IRIX"; }
 linux()     { issystem "Linux"; }
 mingw32()   { issystem "MINGW32"; }
 morphos()   { issystem "MorphOS"; }
 netbsd()    { issystem "NetBSD"; }
 openbsd()   { issystem "OpenBSD"; }
-os2()       { issystem "OS/2"; }
 qnx()       { issystem "QNX"; }
 sunos()     { issystem "SunOS"; }
 win32()     { cygwin || mingw32; }
@@ -344,7 +342,6 @@ Optional features:
   --disable-dvdread      disable libdvdread [autodetect]
   --disable-dvdread-internal  disable internal libdvdread [autodetect]
   --disable-libdvdcss-internal  disable internal libdvdcss [autodetect]
-  --disable-cdparanoia   disable cdparanoia [autodetect]
   --disable-cddb         disable cddb [autodetect]
   --disable-bitmap-font  disable bitmap font support [enable]
   --disable-freetype     disable FreeType 2 font rendering [autodetect]
@@ -402,7 +399,6 @@ Video output:
   --enable-vesa            enable VESA video output [autodetect]
   --enable-svga            enable SVGAlib video output [autodetect]
   --enable-sdl             enable SDL video output [autodetect]
-  --enable-kva             enable KVA video output [autodetect]
   --enable-aa              enable AAlib video output [autodetect]
   --enable-caca            enable CACA  video output [autodetect]
   --enable-ggi             enable GGI video output [autodetect]
@@ -437,22 +433,18 @@ Video output:
   --disable-yuv4mpeg       disable yuv4mpeg video output [enable]
   --disable-corevideo      disable CoreVideo video output [autodetect]
   --disable-cocoa          disable Cocoa OpenGL backend [autodetect]
-  --disable-quartz         disable Quartz video output [autodetect]
+  --disable-sharedbuffer   disable OSX shared buffer video output [autodetect]
 
 Audio output:
   --disable-alsa         disable ALSA audio output [autodetect]
   --disable-ossaudio     disable OSS audio output [autodetect]
-  --disable-arts         disable aRts audio output [autodetect]
-  --disable-esd          disable esd audio output [autodetect]
   --disable-rsound       disable RSound audio output [autodetect]
   --disable-pulse        disable Pulseaudio audio output [autodetect]
+  --disable-portaudio    disable PortAudio audio output [autodetect]
   --disable-jack         disable JACK audio output [autodetect]
   --enable-openal        enable OpenAL audio output [disable]
   --disable-nas          disable NAS audio output [autodetect]
-  --disable-sgiaudio     disable SGI audio output [autodetect]
   --disable-sunaudio     disable Sun audio output [autodetect]
-  --disable-kai          disable KAI audio output [autodetect]
-  --disable-dart         disable DART audio output [autodetect]
   --disable-win32waveout disable Windows waveout audio output [autodetect]
   --disable-coreaudio    disable CoreAudio audio output [autodetect]
   --disable-select       disable using select() on the audio device [enable]
@@ -576,7 +568,6 @@ _dga2=auto
 _xv=auto
 _vdpau=auto
 _sdl=auto
-_kva=auto
 _direct3d=auto
 _directx=auto
 _win32waveout=auto
@@ -604,10 +595,9 @@ _iconv=auto
 _langinfo=auto
 _rtc=auto
 _ossaudio=auto
-_arts=auto
-_esd=auto
 _rsound=auto
 _pulse=auto
+_portaudio=auto
 _jack=auto
 _kai=auto
 _dart=auto
@@ -643,7 +633,6 @@ _mga=auto
 _xmga=auto
 _vm=auto
 _xf86keysym=auto
-_sgiaudio=auto
 _sunaudio=auto
 _alsa=auto
 _fastmemcpy=yes
@@ -689,7 +678,7 @@ _charset="UTF-8"
 _crash_debug=no
 _sighandler=yes
 _libdv=auto
-_cdparanoia=auto
+_cdda=auto
 _cddb=auto
 _big_endian=auto
 _bitmap_font=yes
@@ -699,7 +688,7 @@ _qtx=auto
 _coreaudio=auto
 _corevideo=auto
 _cocoa=auto
-_quartz=auto
+_sharedbuffer=auto
 quicktime=auto
 _macosx_finder=no
 _macosx_bundle=auto
@@ -868,8 +857,6 @@ for ac_option do
   --disable-vdpau)      _vdpau=no       ;;
   --enable-sdl)         _sdl=yes        ;;
   --disable-sdl)        _sdl=no         ;;
-  --enable-kva)         _kva=yes        ;;
-  --disable-kva)        _kva=no         ;;
   --enable-direct3d)    _direct3d=yes   ;;
   --disable-direct3d)   _direct3d=no    ;;
   --enable-directx)     _directx=yes    ;;
@@ -926,22 +913,16 @@ for ac_option do
   --disable-libdv)      _libdv=no       ;;
   --enable-ossaudio)    _ossaudio=yes   ;;
   --disable-ossaudio)   _ossaudio=no    ;;
-  --enable-arts)        _arts=yes       ;;
-  --disable-arts)       _arts=no        ;;
-  --enable-esd)         _esd=yes        ;;
-  --disable-esd)        _esd=no         ;;
   --enable-rsound)      _rsound=yes     ;;
   --disable-rsound)     _rsound=no      ;;
   --enable-pulse)       _pulse=yes      ;;
   --disable-pulse)      _pulse=no       ;;
+  --enable-portaudio)   _portaudio=yes  ;;
+  --disable-portaudio)  _portaudio=no   ;;
   --enable-jack)        _jack=yes       ;;
   --disable-jack)       _jack=no        ;;
   --enable-openal)      _openal=yes     ;;
   --disable-openal)     _openal=no      ;;
-  --enable-kai)         _kai=yes        ;;
-  --disable-kai)        _kai=no         ;;
-  --enable-dart)        _dart=yes       ;;
-  --disable-dart)       _dart=no        ;;
   --enable-mad)         _mad=yes        ;;
   --disable-mad)        _mad=no         ;;
   --enable-libcdio)     _libcdio=yes    ;;
@@ -1002,8 +983,6 @@ for ac_option do
   --disable-xf86keysym) _xf86keysym=no  ;;
   --enable-sunaudio)    _sunaudio=yes   ;;
   --disable-sunaudio)   _sunaudio=no    ;;
-  --enable-sgiaudio)    _sgiaudio=yes   ;;
-  --disable-sgiaudio)   _sgiaudio=no    ;;
   --enable-alsa)        _alsa=yes       ;;
   --disable-alsa)       _alsa=no        ;;
   --enable-tv)          _tv=yes         ;;
@@ -1080,8 +1059,6 @@ for ac_option do
   --disable-shm)        _shm=no         ;;
   --enable-select)      _select=yes     ;;
   --disable-select)     _select=no      ;;
-  --enable-cdparanoia)  _cdparanoia=yes ;;
-  --disable-cdparanoia) _cdparanoia=no  ;;
   --enable-cddb)        _cddb=yes       ;;
   --disable-cddb)       _cddb=no        ;;
   --enable-big-endian)  _big_endian=yes ;;
@@ -1135,8 +1112,8 @@ for ac_option do
   --disable-corevideo) _corevideo=no ;;
   --enable-cocoa) _cocoa=yes ;;
   --disable-cocoa) _cocoa=no ;;
-  --enable-quartz) _quartz=yes ;;
-  --disable-quartz) _quartz=no ;;
+  --enable-sharedbuffer) _sharedbuffer=yes ;;
+  --disable-sharedbuffer) _sharedbuffer=no ;;
   --enable-macosx-finder) _macosx_finder=yes ;;
   --disable-macosx-finder) _macosx_finder=no ;;
   --enable-macosx-bundle) _macosx_bundle=yes ;;
@@ -1266,9 +1243,6 @@ if test -z "$_target" ; then
   Haiku)
     system_name=BeOS
     ;;
-  IRIX*)
-    system_name=IRIX
-    ;;
   GNU/kFreeBSD)
     system_name=FreeBSD
     ;;
@@ -1367,9 +1341,6 @@ fi
 
 if darwin; then
   extra_cflags="-mdynamic-no-pic $extra_cflags"
-  if test "$(basename $_cc)" != "clang" ; then
-    extra_cflags="-falign-loops=16 -shared-libgcc $extra_cflags"
-  fi
   _timer=timer-darwin.c
 fi
 
@@ -1377,9 +1348,7 @@ if aix ; then
   extra_ldflags="$extra_ldflags -lC"
 fi
 
-if irix ; then
-  _ranlib='ar -r'
-elif linux ; then
+if linux ; then
   _ranlib='true'
 fi
 
@@ -1411,15 +1380,6 @@ fi
 
 if qnx ; then
   extra_ldflags="$extra_ldflags -lph"
-fi
-
-if os2 ; then
-  _exesuf=".exe"
-  _getch=getch2-os2.c
-  need_shmem=no
-  _priority=yes
-  def_dos_paths="#define HAVE_DOS_PATHS 1"
-  def_priority="#define CONFIG_PRIORITY 1"
 fi
 
 TMPC="$mplayer_tmpdir/tmp.c"
@@ -2190,24 +2150,6 @@ EOF
     arch='mips'
     iproc='mips'
 
-    if irix ; then
-        echocheck "CPU type"
-        proc=$(hinv -c processor | grep CPU | cut -d " " -f3)
-        case "$(echo $proc)" in
-            R3000) _march='-mips1' _mcpu='-mtune=r2000' ;;
-            R4000) _march='-mips3' _mcpu='-mtune=r4000' ;;
-            R4400) _march='-mips3' _mcpu='-mtune=r4400' ;;
-            R4600) _march='-mips3' _mcpu='-mtune=r4600' ;;
-            R5000) _march='-mips4' _mcpu='-mtune=r5000' ;;
-            R8000|R10000|R12000|R14000|R16000) _march='-mips4' _mcpu='-mtune=r8000' ;;
-        esac
-        # gcc < 3.x does not support -mtune.
-        if test "$cc_vendor" = "gnu" && test "$_cc_major" -lt 3 ; then
-            _mcpu=''
-        fi
-        echores "$proc"
-    fi
-
     test $_fast_clz = "auto" && _fast_clz=yes
 
     ;;
@@ -2336,29 +2278,32 @@ fi # if darwin && test "$cc_vendor" = "gnu" ; then
 # Checking for CFLAGS
 _install_strip="-s"
 if test "$_profile" != "" || test "$_debug" != "" ; then
-  CFLAGS="-O2 $_march $_mcpu $_pipe $_debug $_profile"
-  WARNFLAGS="-W -Wall"
   _install_strip=
-elif test -z "$CFLAGS" ; then
+fi
+if test -z "$CFLAGS" ; then
   if test "$cc_vendor" = "intel" ; then
-    CFLAGS="-O2 $_march $_mcpu $_pipe -fomit-frame-pointer"
+    CFLAGS="-O2 $_debug $_profile $_march $_mcpu $_pipe -fomit-frame-pointer"
     WARNFLAGS="-wd167 -wd556 -wd144"
   elif test "$cc_vendor" = "sun" ; then
-    CFLAGS="-O2 $_march $_mcpu $_pipe -xc99 -xregs=frameptr"
+    CFLAGS="-O2 $_debug $_profile $_march $_mcpu $_pipe -xc99 -xregs=frameptr"
   elif test "$cc_vendor" = "clang"; then
-    CFLAGS="-O2 $_march $_pipe"
+    CFLAGS="-O2 $_debug $_profile $_march $_pipe"
     WARNFLAGS="-Wall -Wno-switch-enum -Wno-logical-op-parentheses -Wpointer-arith -Wundef -Wno-pointer-sign -Wmissing-prototypes"
     ERRORFLAGS="-Werror=implicit-function-declaration"
   elif test "$cc_vendor" != "gnu" ; then
-    CFLAGS="-O2 $_march $_mcpu $_pipe"
+    CFLAGS="-O2 $_debug $_profile $_march $_mcpu $_pipe"
   else
-    CFLAGS="-O2 $_march $_mcpu $_pipe -ffast-math -fomit-frame-pointer"
+    CFLAGS="-O2 $_debug $_profile $_march $_mcpu $_pipe -ffast-math -fomit-frame-pointer"
     WARNFLAGS="-Wall -Wno-switch -Wno-parentheses -Wpointer-arith -Wredundant-decls"
     ERRORFLAGS="-Werror-implicit-function-declaration"
     extra_ldflags="$extra_ldflags -ffast-math"
   fi
 else
   warn_cflags=yes
+fi
+
+if darwin && test "$cc_vendor" = "gnu" ; then
+  extra_cflags="-falign-loops=16 -shared-libgcc $extra_cflags"
 fi
 
 if test "$cc_vendor" = "gnu" ; then
@@ -3107,7 +3052,6 @@ if test "$_mman" = yes ; then
   def_mman_h='#define HAVE_SYS_MMAN_H 1'
 else
   def_mman_h='#undef HAVE_SYS_MMAN_H'
-  os2 && need_mmap=yes
 fi
 echores "$_mman"
 
@@ -3484,8 +3428,7 @@ int main(void) {int nfds = 1; fd_set readfds; struct timeval timeout; select(nfd
 EOF
 _posix_select=no
 def_posix_select='#undef HAVE_POSIX_SELECT'
-#select() of kLIBC (OS/2) supports socket only
-! os2 && cc_check && _posix_select=yes &&
+cc_check && _posix_select=yes &&
     def_posix_select='#define HAVE_POSIX_SELECT 1'
 echores "$_posix_select"
 
@@ -3579,7 +3522,7 @@ echocheck "Mac OS X Finder Support"
 def_macosx_finder='#undef CONFIG_MACOSX_FINDER'
 if test "$_macosx_finder" = yes ; then
   def_macosx_finder='#define CONFIG_MACOSX_FINDER 1'
-  extra_ldflags="$extra_ldflags -framework Carbon"
+  extra_ldflags="$extra_ldflags -framework Cocoa"
 fi
 echores "$_macosx_finder"
 
@@ -3588,7 +3531,6 @@ def_macosx_bundle='#undef CONFIG_MACOSX_BUNDLE'
 test "$_macosx_bundle" = auto && _macosx_bundle=$_macosx_finder
 if test "$_macosx_bundle" = yes ; then
   def_macosx_bundle='#define CONFIG_MACOSX_BUNDLE 1'
-  extra_ldflags="$extra_ldflags -framework Carbon"
 fi
 echores "$_macosx_bundle"
 
@@ -3833,6 +3775,87 @@ fi
 echores "$_directfb"
 
 
+if darwin; then
+
+echocheck "QuickTime"
+if test "$quicktime" = auto ; then
+  quicktime=no
+  statement_check QuickTime/QuickTime.h 'ImageDescription *desc; EnterMovies(); ExitMovies()' -framework QuickTime && quicktime=yes
+fi
+if test "$quicktime" = yes ; then
+  extra_ldflags="$extra_ldflags -framework QuickTime"
+  def_quicktime='#define CONFIG_QUICKTIME 1'
+else
+  def_quicktime='#undef CONFIG_QUICKTIME'
+fi
+echores $quicktime
+
+echocheck "Cocoa"
+if test "$_cocoa" = auto ; then
+  cat > $TMPC <<EOF
+#include <CoreServices/CoreServices.h>
+#include <OpenGL/OpenGL.h>
+int main(void) {
+  NSApplicationLoad();
+}
+EOF
+  _cocoa=no
+  cc_check -framework Cocoa -framework OpenGL && _cocoa=yes
+fi
+if test "$_cocoa" = yes ; then
+  libs_mplayer="$libs_mplayer -framework Cocoa -framework OpenGL"
+  def_cocoa='#define CONFIG_COCOA 1'
+else
+  def_cocoa='#undef CONFIG_COCOA'
+fi
+echores "$_cocoa"
+
+echocheck "CoreVideo"
+if test "$_cocoa" = yes && test "$_corevideo" = auto ; then
+  cat > $TMPC <<EOF
+#include <QuartzCore/CoreVideo.h>
+int main(void) { return 0; }
+EOF
+  _corevideo=no
+  cc_check -framework Cocoa -framework QuartzCore -framework OpenGL && _corevideo=yes
+fi
+if test "$_corevideo" = yes ; then
+  vomodules="corevideo $vomodules"
+  libs_mplayer="$libs_mplayer -framework QuartzCore"
+  def_corevideo='#define CONFIG_COREVIDEO 1'
+else
+  novomodules="corevideo $novomodules"
+  def_corevideo='#undef CONFIG_COREVIDEO'
+fi
+echores "$_corevideo"
+
+echocheck "SharedBuffer"
+if test "$_sharedbuffer" = auto ; then
+  cat > $TMPC <<EOF
+int main(void) {
+  NSApplicationLoad();
+}
+EOF
+  _sharedbuffer=no
+  cc_check -framework Cocoa && _sharedbuffer=yes
+fi
+if test "$_sharedbuffer" = yes ; then
+  vomodules="sharedbuffer $vomodules"
+  libs_mplayer="$libs_mplayer -framework Cocoa"
+  def_sharedbuffer='#define CONFIG_SHAREDBUFFER 1'
+else
+  novomodules="sharedbuffer $novomodules"
+  def_sharedbuffer='#undef CONFIG_SHAREDBUFFER'
+fi
+echores "$_sharedbuffer"
+
+depends_on_application_services(){
+  test "$_corevideo" = yes
+}
+
+fi #if darwin
+
+
 echocheck "X11 headers presence"
   _x11_headers="no"
   res_comment="check if the dev(el) packages are installed"
@@ -3868,7 +3891,20 @@ if test "$_x11" = auto && test "$_x11_headers" = yes ; then
       _ld_tmp="$I -lXext -lX11 $_ld_pthread"
     fi
     statement_check X11/Xutil.h 'XCreateWindow(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)' $_ld_tmp &&
-      libs_mplayer="$libs_mplayer $_ld_tmp" && _x11=yes && break
+      _x11=yes
+    # Check that there aren't conflicting headers between ApplicationServices
+    # and X11. On versions of Mac OSX prior to 10.7 the deprecated QuickDraw API
+    # is included by -framework ApplicationServices and clashes with the X11
+    # definition of the "Cursor" type.
+    if darwin && depends_on_application_services && test "$_x11" = yes ; then
+      _x11=no
+      header_check_broken ApplicationServices/ApplicationServices.h \
+        X11/Xutil.h $_ld_tmp && _x11=yes
+    fi
+    if test "$_x11" = yes ; then
+      libs_mplayer="$libs_mplayer $_ld_tmp"
+      break
+    fi
   done
 fi
 if test "$_x11" = yes ; then
@@ -3946,12 +3982,11 @@ echocheck "VDPAU"
 if test "$_vdpau" = auto && test "$_x11" = yes ; then
   _vdpau=no
   if test "$_dl" = yes ; then
-    return_statement_check vdpau/vdpau_x11.h 'vdp_device_create_x11(0, 0, 0, 0)' VDP_VIDEO_MIXER_FEATURE_HIGH_QUALITY_SCALING_L1 -lvdpau && _vdpau=yes
+    pkg_config_add 'vdpau >= 0.2' && _vdpau=yes
   fi
 fi
 if test "$_vdpau" = yes ; then
   def_vdpau='#define CONFIG_VDPAU 1'
-  libs_mplayer="$libs_mplayer -lvdpau"
   vomodules="vdpau $vomodules"
 else
   def_vdpau='#define CONFIG_VDPAU 0'
@@ -4213,90 +4248,9 @@ else
 fi
 
 
-if darwin; then
-
-echocheck "QuickTime"
-if test "$quicktime" = auto ; then
-  quicktime=no
-  statement_check QuickTime/QuickTime.h 'ImageDescription *desc; EnterMovies(); ExitMovies()' -framework QuickTime && quicktime=yes
-fi
-if test "$quicktime" = yes ; then
-  extra_ldflags="$extra_ldflags -framework QuickTime"
-  def_quicktime='#define CONFIG_QUICKTIME 1'
-else
-  def_quicktime='#undef CONFIG_QUICKTIME'
-  _quartz=no
-fi
-echores $quicktime
-
-echocheck "Quartz"
-if test "$_quartz" = auto ; then
-  _quartz=no
-  statement_check Carbon/Carbon.h 'CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false)' -framework Carbon && _quartz=yes
-fi
-if test "$_quartz" = yes ; then
-  libs_mplayer="$libs_mplayer -framework Carbon"
-  def_quartz='#define CONFIG_QUARTZ 1'
-  vomodules="quartz $vomodules"
-else
-  def_quartz='#undef CONFIG_QUARTZ'
-  novomodules="quartz $novomodules"
-fi
-echores $_quartz
-
-echocheck "CoreVideo"
-if test "$_corevideo" = auto ; then
-  cat > $TMPC <<EOF
-#include <Carbon/Carbon.h>
-#include <CoreServices/CoreServices.h>
-#include <OpenGL/OpenGL.h>
-#include <QuartzCore/CoreVideo.h>
-int main(void) { return 0; }
-EOF
-  _corevideo=no
-  cc_check -framework Carbon -framework Cocoa -framework QuartzCore -framework OpenGL && _corevideo=yes
-fi
-if test "$_corevideo" = yes ; then
-  vomodules="corevideo $vomodules"
-  libs_mplayer="$libs_mplayer -framework Carbon -framework Cocoa -framework QuartzCore -framework OpenGL"
-  def_corevideo='#define CONFIG_COREVIDEO 1'
-else
-  novomodules="corevideo $novomodules"
-  def_corevideo='#undef CONFIG_COREVIDEO'
-fi
-echores "$_corevideo"
-
-echocheck "Cocoa"
-if test "$_gl" = no ; then
-  # if _gl is not enabled there is no point to add potentially unused linker flags
-  _cocoa=no
-fi
-if test "$_cocoa" = auto ; then
-  cat > $TMPC <<EOF
-#include <CoreServices/CoreServices.h>
-#include <OpenGL/OpenGL.h>
-#include <QuartzCore/CoreVideo.h>
-int main(void) { return 0; }
-EOF
-  _cocoa=no
-  cc_check -framework Cocoa -framework QuartzCore -framework OpenGL && _cocoa=yes
-fi
-if test "$_cocoa" = yes ; then
-  libs_mplayer="$libs_mplayer -framework Cocoa -framework QuartzCore -framework OpenGL"
-fi
-echores "$_cocoa"
-
-fi #if darwin
-
-
 echocheck "PNG support"
 if test "$_png" = auto ; then
   _png=no
-  if irix ; then
-    # Don't check for -lpng on irix since it has its own libpng
-    # incompatible with the GNU libpng
-    res_comment="disabled on irix (not GNU libpng)"
-  else
 cat > $TMPC << EOF
 #include <stdio.h>
 #include <string.h>
@@ -4307,8 +4261,7 @@ int main(void) {
   return strcmp(PNG_LIBPNG_VER_STRING, png_libpng_ver);
 }
 EOF
-    cc_check -lpng -lz $_ld_lm && _png=yes
-  fi
+  cc_check -lpng -lz $_ld_lm && _png=yes
 fi
 echores "$_png"
 if test "$_png" = yes ; then
@@ -4579,15 +4532,17 @@ int main(int argc, char *argv[]) {
 }
 EOF
   _gl=no
-  for _ld_tmp in "" -lGL "-lGL -lXdamage" "-lGL $_ld_pthread" ; do
-    if cc_check $_ld_tmp $_ld_lm ; then
-      _gl=yes
-      _gl_x11=yes
-      libs_mplayer="$libs_mplayer $_ld_tmp $_ld_dl"
-      break
-    fi
-  done
-  if cc_check -DGL_WIN32 -lopengl32 ; then
+  if test "$_x11" = yes ; then
+    for _ld_tmp in "" -lGL "-lGL -lXdamage" "-lGL $_ld_pthread" ; do
+      if cc_check $_ld_tmp $_ld_lm ; then
+        _gl=yes
+        _gl_x11=yes
+        libs_mplayer="$libs_mplayer $_ld_tmp $_ld_dl"
+        break
+      fi
+    done
+  fi
+  if win32 && cc_check -DGL_WIN32 -lopengl32 ; then
     _gl=yes
     _gl_win32=yes
     libs_mplayer="$libs_mplayer -lopengl32 -lgdi32"
@@ -4641,24 +4596,6 @@ else
   novomodules="opengl $novomodules"
 fi
 echores "$_gl"
-
-
-if os2 ; then
-echocheck "KVA (SNAP/WarpOverlay!/DIVE)"
-if test "$_kva" = auto; then
-  _kva=no;
-  header_check_broken os2.h kva.h -lkva && _kva=yes
-fi
-if test "$_kva" = yes ; then
-  def_kva='#define CONFIG_KVA 1'
-  libs_mplayer="$libs_mplayer -lkva"
-  vomodules="kva $vomodules"
-else
-  def_kva='#undef CONFIG_KVA'
-  novomodules="kva $novomodules"
-fi
-echores "$_kva"
-fi #if os2
 
 
 if win32; then
@@ -4842,51 +4779,6 @@ fi
 echores "$_ossaudio"
 
 
-echocheck "aRts"
-if test "$_arts" = auto ; then
-  _arts=no
-  if ( artsc-config --version ) >> "$TMPLOG" 2>&1 ; then
-    statement_check artsc.h 'arts_init()' $(artsc-config --libs) $(artsc-config --cflags) &&
-      _arts=yes
-  fi
-fi
-
-if test "$_arts" = yes ; then
-  def_arts='#define CONFIG_ARTS 1'
-  aomodules="arts $aomodules"
-  libs_mplayer="$libs_mplayer $(artsc-config --libs)"
-  extra_cflags="$extra_cflags $(artsc-config --cflags)"
-else
-  noaomodules="arts $noaomodules"
-fi
-echores "$_arts"
-
-
-echocheck "EsounD"
-if test "$_esd" = auto ; then
-  _esd=no
-  if ( esd-config --version ) >> "$TMPLOG" 2>&1 ; then
-    statement_check esd.h 'esd_open_sound("test")' $(esd-config --libs) $(esd-config --cflags) && _esd=yes
-  fi
-fi
-echores "$_esd"
-
-if test "$_esd" = yes ; then
-  def_esd='#define CONFIG_ESD 1'
-  aomodules="esd $aomodules"
-  libs_mplayer="$libs_mplayer $(esd-config --libs)"
-  extra_cflags="$extra_cflags $(esd-config --cflags)"
-
-  echocheck "esd_get_latency()"
-  statement_check esd.h 'esd_get_latency(0)' $(esd-config --libs) $(esd-config --cflags) &&
-    _esd_latency=yes && def_esd_latency='#define CONFIG_ESD_LATENCY 1'
-  echores "$_esd_latency"
-else
-  def_esd='#undef CONFIG_ESD'
-  def_esd_latency='#undef CONFIG_ESD_LATENCY'
-  noaomodules="esd $noaomodules"
-fi
-
 echocheck "RSound"
 if test "$_rsound" = auto ; then
    _rsound=no
@@ -4935,6 +4827,28 @@ if test "$_pulse" = yes ; then
 else
   def_pulse='#undef CONFIG_PULSE'
   noaomodules="pulse $noaomodules"
+fi
+
+
+echocheck "PortAudio"
+if test "$_portaudio" = auto && test "$_pthreads" != yes ; then
+    _portaudio=no
+    res_comment="pthreads not enabled"
+fi
+if test "$_portaudio" = auto ; then
+  _portaudio=no
+  if pkg_config_add 'portaudio-2.0 >= 19' ; then
+      _portaudio=yes
+  fi
+fi
+echores "$_portaudio"
+
+if test "$_portaudio" = yes ; then
+  def_portaudio='#define CONFIG_PORTAUDIO 1'
+  aomodules="portaudio $aomodules"
+else
+  def_portaudio='#undef CONFIG_PORTAUDIO'
+  noaomodules="portaudio $noaomodules"
 fi
 
 
@@ -5048,59 +4962,8 @@ echores $_coreaudio
 fi #if darwin
 
 
-if irix; then
-echocheck "SGI audio"
-if test "$_sgiaudio" = auto ; then
-  _sgiaudio=no
-  header_check dmedia/audio.h && _sgiaudio=yes
-fi
-if test "$_sgiaudio" = "yes" ; then
-  def_sgiaudio='#define CONFIG_SGI_AUDIO 1'
-  libs_mplayer="$libs_mplayer -laudio"
-  aomodules="sgi $aomodules"
-else
-  def_sgiaudio='#undef CONFIG_SGI_AUDIO'
-  noaomodules="sgi $noaomodules"
-fi
-echores "$_sgiaudio"
-fi #if irix
-
-
-if os2 ; then
-echocheck "KAI (UNIAUD/DART)"
-if test "$_kai" = auto; then
-  _kai=no;
-  header_check_broken os2.h kai.h -lkai && _kai=yes
-fi
-if test "$_kai" = yes ; then
-  def_kai='#define CONFIG_KAI 1'
-  libs_mplayer="$libs_mplayer -lkai"
-  aomodules="kai $aomodules"
-else
-  def_kai='#undef CONFIG_KAI'
-  noaomodules="kai $noaomodules"
-fi
-echores "$_kai"
-
-echocheck "DART"
-if test "$_dart" = auto; then
-  _dart=no;
-  header_check_broken os2.h dart.h -ldart && _dart=yes
-fi
-if test "$_dart" = yes ; then
-  def_dart='#define CONFIG_DART 1'
-  libs_mplayer="$libs_mplayer -ldart"
-  aomodules="dart $aomodules"
-else
-  def_dart='#undef CONFIG_DART'
-  noaomodules="dart $noaomodules"
-fi
-echores "$_dart"
-fi #if os2
-
-
 # set default CD/DVD devices
-if win32 || os2 ; then
+if win32 ; then
   default_cdrom_device="D:"
 elif darwin ; then
   default_cdrom_device="/dev/disk1"
@@ -5121,7 +4984,7 @@ else
   default_cdrom_device="/dev/cdrom"
 fi
 
-if win32 || os2 || dragonfly || freebsd || openbsd || sunos || amigaos ; then
+if win32 || dragonfly || freebsd || openbsd || sunos || amigaos ; then
   default_dvd_device=$default_cdrom_device
 elif darwin ; then
   default_dvd_device="/dev/rdiskN"
@@ -5133,7 +4996,7 @@ fi
 echocheck "VCD support"
 if test "$_vcd" = auto; then
   _vcd=no
-  if linux || freebsd || netbsd || openbsd || dragonfly || bsdos || darwin || sunos || os2; then
+  if linux || freebsd || netbsd || openbsd || dragonfly || bsdos || darwin || sunos; then
     _vcd=yes
   elif mingw32; then
   header_check ddk/ntddcdrm.h && _vcd=yes
@@ -5154,11 +5017,10 @@ echores "$_vcd"
 echocheck "Blu-ray support"
 if test "$_bluray" = auto ; then
   _bluray=no
-  statement_check libbluray/bluray.h 'bd_get_title_info(0, 0, 0)' -lbluray && _bluray=yes
+  pkg_config_add 'libbluray >= 0.2.1' && _bluray=yes
 fi
 if test "$_bluray" = yes ; then
   def_bluray='#define CONFIG_LIBBLURAY 1'
-  extra_ldflags="$extra_ldflags -lbluray"
   inputmodules="bluray $inputmodules"
 else
   def_bluray='#undef CONFIG_LIBBLURAY'
@@ -5176,7 +5038,7 @@ if test "$_dvdread_internal" = auto ; then
   if (linux || freebsd || netbsd || openbsd || dragonfly || sunos || hpux) &&
      (test "$_dvd" = yes || test "$_cdrom" = yes || test "$_cdio" = yes ||
       test "$_dvdio" = yes || test "$_bsdi_dvd" = yes) ||
-     darwin || win32 || os2; then
+     darwin || win32; then
     _dvdread_internal=yes
     _dvdread=yes
     extra_cflags="-Ilibdvdread4 $extra_cflags"
@@ -5230,8 +5092,6 @@ if test "$_libdvdcss_internal" = yes ; then
     cflags_libdvdcss="-DSYS_CYGWIN -DWIN32"
   elif beos ; then
     cflags_libdvdcss="-DSYS_BEOS"
-  elif os2 ; then
-    cflags_libdvdcss="-DSYS_OS2"
   fi
   cflags_libdvdcss_dvdread="-Ilibdvdcss"
   def_dvdcss="#define HAVE_DVDCSS_DVDCSS_H 1"
@@ -5242,57 +5102,25 @@ fi
 echores "$_libdvdcss_internal"
 
 
-echocheck "cdparanoia"
-if test "$_cdparanoia" = auto ; then
-    cat > $TMPC <<EOF
-#include <cdda_interface.h>
-#include <cdda_paranoia.h>
-// This need a better test. How ?
-int main(void) { void *test = cdda_verbose_set; return test == (void *)1; }
-EOF
-    _cdparanoia=no
-    for _inc_tmp in "" "-I/usr/include/cdda" "-I/usr/local/include/cdda" ; do
-      cc_check $_inc_tmp -lcdda_interface -lcdda_paranoia $_ld_lm &&
-        _cdparanoia=yes && extra_cflags="$extra_cflags $_inc_tmp" && break
-    done
-fi
-if test "$_cdparanoia" = yes ; then
-    _cdda='yes'
-    extra_ldflags="$extra_ldflags -lcdda_interface -lcdda_paranoia"
-    openbsd && extra_ldflags="$extra_ldflags -lutil"
-fi
-echores "$_cdparanoia"
-
-
 echocheck "libcdio"
-if test "$_libcdio" = auto && test "$_cdparanoia" = no ; then
+if test "$_libcdio" = auto ; then
     _libcdio=no
     if pkg_config_add libcdio_paranoia ; then
         _libcdio=yes
     fi
 fi
-if test "$_libcdio" = yes && test "$_cdparanoia" = no ; then
+if test "$_libcdio" = yes ; then
     _cdda='yes'
-    def_libcdio='#define CONFIG_LIBCDIO 1'
-    def_havelibcdio='yes'
-else
-    _libcdio=no
-    if test "$_cdparanoia" = yes ; then
-       res_comment="using cdparanoia"
-    fi
-    def_libcdio='#undef CONFIG_LIBCDIO'
-    def_havelibcdio='no'
-fi
-echores "$_libcdio"
-
-if test "$_cdda" = yes ; then
+    def_cdda='#define CONFIG_CDDA 1'
     test $_cddb = auto && test $networking = yes && _cddb=yes
-    def_cdparanoia='#define CONFIG_CDDA 1'
     inputmodules="cdda $inputmodules"
 else
-    def_cdparanoia='#undef CONFIG_CDDA'
+    _libcdio=no
+    _cdda='no'
+    def_cdda='#undef CONFIG_CDDA'
     noinputmodules="cdda $noinputmodules"
 fi
+echores "$_libcdio"
 
 if test "$_cddb" = yes ; then
     def_cddb='#define CONFIG_CDDB 1'
@@ -5517,12 +5345,13 @@ else
 fi
 echores "$_theora"
 
-# Any version of libmpg123 shall be fine.
+# Any version of libmpg123 that knows MPG123_RESYNC_LIMIT shall be fine.
+# That is, 1.2.0 onwards. Recommened is 1.14 onwards, though.
 echocheck "mpg123 support"
 def_mpg123='#undef CONFIG_MPG123'
 if test "$_mpg123" = auto; then
   _mpg123=no
-  statement_check mpg123.h 'mpg123_init()' -lmpg123 && _mpg123=yes && extra_ldflags="$extra_ldflags -lmpg123"
+  pkg_config_add 'libmpg123 >= 1.2.0' && _mpg123=yes
 fi
 if test "$_mpg123" = yes ; then
   def_mpg123='#define CONFIG_MPG123 1'
@@ -5657,7 +5486,7 @@ fi
 # Fall back on default directory.
 if test -z "$_codecsdir" ; then
   _codecsdir="$_libdir/codecs"
-  mingw32 || os2 && _codecsdir="codecs"
+  mingw32 && _codecsdir="codecs"
 fi
 
 
@@ -5709,7 +5538,7 @@ if test "$_real" = auto ; then
   _real=no
   res_comment="dynamic loader support needed"
   if test "$_dl" = yes || test "$_win32dll" = yes &&
-     (linux || freebsd || netbsd || openbsd || dragonfly || darwin || win32 || os2) ; then
+     (linux || freebsd || netbsd || openbsd || dragonfly || darwin || win32) ; then
     _real=yes
   fi
 fi
@@ -6284,7 +6113,7 @@ fi
 # (FIXME: 'echocheck "dynamic linking"' above and modify here accordingly)
 _ld_dl_dynamic=''
 freebsd || netbsd || openbsd || dragonfly || bsdos && _ld_dl_dynamic='-rdynamic'
-if test "$_real" = yes || test "$_xanim" = yes && ! win32 && ! qnx && ! darwin && ! os2 && ! sunos; then
+if test "$_real" = yes || test "$_xanim" = yes && ! win32 && ! qnx && ! darwin && ! sunos; then
   _ld_dl_dynamic='-rdynamic'
 fi
 
@@ -6334,15 +6163,6 @@ else
   def_lircc='#undef CONFIG_LIRCC'
 fi
 echores "$_lircc"
-
-#############################################################################
-
-# On OS/2 nm supports only a.out. So the -Zomf compiler option to generate
-# the OMF format needs to come after the 'extern symbol prefix' check, which
-# uses nm.
-if os2 ; then
-  extra_ldflags="$extra_ldflags -Zomf -Zstack 16384 -Zbin-files -Zargs-wild"
-fi
 
 #############################################################################
 
@@ -6468,7 +6288,6 @@ MPLAYER  = $_mplayer
 
 NEED_GETTIMEOFDAY = $need_gettimeofday
 NEED_GLOB         = $need_glob
-NEED_MMAP         = $need_mmap
 NEED_SETENV       = $need_setenv
 NEED_SHMEM        = $need_shmem
 NEED_STRSEP       = $need_strsep
@@ -6481,16 +6300,16 @@ AA = $_aa
 ALSA = $_alsa
 APPLE_IR = $_apple_ir
 APPLE_REMOTE = $_apple_remote
-ARTS = $_arts
 AUDIO_INPUT = $_audio_input
 BITMAP_FONT = $_bitmap_font
 BL = $_bl
 CACA = $_caca
 CDDA = $_cdda
 CDDB = $_cddb
+COCOA = $_cocoa
 COREAUDIO = $_coreaudio
 COREVIDEO = $_corevideo
-DART = $_dart
+SHAREDBUFFER = $_sharedbuffer
 DGA = $_dga
 DIRECT3D = $_direct3d
 DIRECTFB = $_directfb
@@ -6501,7 +6320,6 @@ DVDNAV_INTERNAL = $dvdnav_internal
 DVDREAD = $_dvdread
 DVDREAD_INTERNAL = $_dvdread_internal
 DXR3 = $_dxr3
-ESD = $_esd
 FAAD = $_faad
 FASTMEMCPY = $_fastmemcpy
 FBDEV = $_fbdev
@@ -6520,8 +6338,6 @@ IVTV = $_ivtv
 JACK = $_jack
 JOYSTICK = $_joystick
 JPEG = $_jpeg
-KAI = $_kai
-KVA = $_kva
 LADSPA = $_ladspa
 LIBA52 = $_liba52
 LIBASS = $_ass
@@ -6554,11 +6370,11 @@ PNG = $_png
 PNM = $_pnm
 PRIORITY = $_priority
 PULSE = $_pulse
+PORTAUDIO = $_portaudio
 PVR = $_pvr
 QTX_CODECS = $_qtx
 QTX_CODECS_WIN32 = $_qtx_codecs_win32
 QTX_EMULATION = $_qtx_emulation
-QUARTZ = $_quartz
 RADIO=$_radio
 RADIO_CAPTURE=$_radio_capture
 REAL_CODECS = $_real
@@ -6567,7 +6383,6 @@ S3FB = $_s3fb
 SDL = $_sdl
 SPEEX = $_speex
 STREAM_CACHE = $_stream_cache
-SGIAUDIO = $_sgiaudio
 SUNAUDIO = $_sunaudio
 SVGA = $_svga
 TDFXFB = $_tdfxfb
@@ -6770,9 +6585,9 @@ $(ff_config_enable "$cpuexts_all" "$cpuexts" "HAVE")
 #define DEFAULT_DVD_DEVICE   "$default_dvd_device"
 $def_bluray
 $def_bsdi_dvd
+$def_cdda
 $def_cddb
 $def_cdio
-$def_cdparanoia
 $def_cdrom
 $def_dvd
 $def_dvd_bsd
@@ -6783,7 +6598,6 @@ $def_dvdio
 $def_dvdnav
 $def_dvdread
 $def_hpux_scsi_h
-$def_libcdio
 $def_sol_scsi_h
 $def_vcd
 
@@ -6821,13 +6635,8 @@ $def_xmms
 
 /* Audio output drivers */
 $def_alsa
-$def_arts
 $def_coreaudio
-$def_dart
-$def_esd
-$def_esd_latency
 $def_jack
-$def_kai
 $def_nas
 $def_openal
 $def_openal_h
@@ -6835,8 +6644,8 @@ $def_ossaudio
 $def_ossaudio_devdsp
 $def_ossaudio_devmixer
 $def_pulse
+$def_portaudio
 $def_rsound
-$def_sgiaudio
 $def_sunaudio
 $def_win32waveout
 
@@ -6895,6 +6704,8 @@ $def_aa
 $def_bl
 $def_caca
 $def_corevideo
+$def_cocoa
+$def_sharedbuffer
 $def_dga
 $def_dga1
 $def_dga2
@@ -6917,13 +6728,11 @@ $def_gl_x11
 $def_gl_sdl
 $def_ivtv
 $def_jpeg
-$def_kva
 $def_md5sum
 $def_mga
 $def_mng
 $def_png
 $def_pnm
-$def_quartz
 $def_s3fb
 $def_sdl
 $def_sdl_sdl_h
@@ -6974,12 +6783,8 @@ $def_yasm
 
 #define HAVE_INLINE_ASM 1
 
-/* Use these registers in FFmpeg x86 inline asm. No proper detection yet. */
-#ifndef MP_DEBUG
+/* Use these registers in x86 inline asm. No proper detection yet. */
 #define HAVE_EBP_AVAILABLE 1
-#else
-#define HAVE_EBP_AVAILABLE 0
-#endif
 
 #endif /* MPLAYER_CONFIG_H */
 EOF

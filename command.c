@@ -719,8 +719,6 @@ static int mp_property_volume(m_option_t *prop, int action, void *arg,
         return M_PROPERTY_NOT_IMPLEMENTED;
     }
 
-    mpctx->user_muted = 0;
-
     switch (action) {
     case M_PROPERTY_SET:
         if (!arg)
@@ -756,18 +754,15 @@ static int mp_property_mute(m_option_t *prop, int action, void *arg,
     case M_PROPERTY_SET:
         if (!arg)
             return M_PROPERTY_ERROR;
-        if ((!!*(int *) arg) != mpctx->mixer.muted)
-            mixer_mute(&mpctx->mixer);
-        mpctx->user_muted = mpctx->mixer.muted;
+        mixer_setmute(&mpctx->mixer, *(int *) arg);
         return M_PROPERTY_OK;
     case M_PROPERTY_STEP_UP:
     case M_PROPERTY_STEP_DOWN:
-        mixer_mute(&mpctx->mixer);
-        mpctx->user_muted = mpctx->mixer.muted;
+        mixer_setmute(&mpctx->mixer, !mixer_getmute(&mpctx->mixer));
         return M_PROPERTY_OK;
     default:
-        return m_property_flag(prop, action, arg, &mpctx->mixer.muted);
-
+        return m_property_flag_ro(prop, action, arg,
+                                  mixer_getmute(&mpctx->mixer));
     }
 }
 
@@ -871,9 +866,6 @@ static int mp_property_balance(m_option_t *prop, int action, void *arg,
                                MPContext *mpctx)
 {
     float bal;
-
-    if (!mpctx->sh_audio || mpctx->sh_audio->channels < 2)
-        return M_PROPERTY_UNAVAILABLE;
 
     switch (action) {
     case M_PROPERTY_GET:
@@ -1767,7 +1759,7 @@ static int mp_property_sub(m_option_t *prop, int action, void *arg,
     }
 #endif
 
-    update_subtitles(mpctx, 0, 0, true);
+    update_subtitles(mpctx, 0, true);
 
     return M_PROPERTY_OK;
 }

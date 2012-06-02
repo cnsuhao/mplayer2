@@ -55,7 +55,6 @@
 
 #include "talloc.h"
 
-#include "osdep/osdep.h"
 #include "osdep/io.h"
 
 char *get_path(const char *filename){
@@ -65,6 +64,9 @@ char *get_path(const char *filename){
 	static char *config_dir = "/mplayer";
 #else
 	static char *config_dir = "/.mplayer";
+#endif
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+	char exedir[260];
 #endif
 	int len;
 #ifdef CONFIG_MACOSX_BUNDLE
@@ -111,25 +113,6 @@ char *get_path(const char *filename){
 
 		homedir = exedir;
 	}
-#elif defined(__OS2__)
-    {
-        PPIB ppib;
-        char path[260];
-
-        // Get process info blocks
-        DosGetInfoBlocks(NULL, &ppib);
-
-        // Get full path of the executable
-        DosQueryModuleName(ppib->pib_hmte, sizeof( path ), path);
-
-        // Truncate name part including last backslash
-        *strrchr(path, '\\') = 0;
-
-        // Convert backslash to slash
-        _fnslashify(path);
-
-        homedir = path;
-    }
 #else
 	return NULL;
 #endif

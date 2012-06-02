@@ -373,7 +373,8 @@ const m_option_t common_opts[] = {
 // ------------------------- common options --------------------
     OPT_MAKE_FLAGS("quiet", quiet, CONF_GLOBAL),
     {"really-quiet", &verbose, CONF_TYPE_FLAG, CONF_GLOBAL|CONF_PRE_PARSE, 0, -10, NULL},
-    {"v", cfg_inc_verbose, CONF_TYPE_FUNC, CONF_GLOBAL|CONF_NOSAVE, 0, 0, NULL},
+    // -v is handled in command line preparser
+    {"v", NULL, CONF_TYPE_FLAG, CONF_NOCFG, 0, 0, NULL},
         {"msglevel", (void *) msgl_config, CONF_TYPE_SUBCONFIG, CONF_GLOBAL, 0, 0, NULL},
     {"msgcolor", &mp_msg_color, CONF_TYPE_FLAG, CONF_GLOBAL, 0, 1, NULL},
     {"nomsgcolor", &mp_msg_color, CONF_TYPE_FLAG, CONF_GLOBAL, 1, 0, NULL},
@@ -728,11 +729,10 @@ const m_option_t mplayer_opts[]={
     {"border", &vo_border, CONF_TYPE_FLAG, 0, 0, 1, NULL},
     {"noborder", &vo_border, CONF_TYPE_FLAG, 0, 1, 0, NULL},
 
-    {"mixer", &mixer_device, CONF_TYPE_STRING, 0, 0, 0, NULL},
-    {"mixer-channel", &mixer_channel, CONF_TYPE_STRING, 0, 0, 0, NULL},
-    {"softvol", &soft_vol, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-    {"nosoftvol", &soft_vol, CONF_TYPE_FLAG, 0, 1, 0, NULL},
-    {"softvol-max", &soft_vol_max, CONF_TYPE_FLOAT, CONF_RANGE, 10, 10000, NULL},
+    OPT_STRING("mixer", mixer_device, 0),
+    OPT_STRING("mixer-channel", mixer_channel, 0),
+    OPT_MAKE_FLAGS("softvol", softvol, 0),
+    OPT_FLOATRANGE("softvol-max", softvol_max, 0, 10, 10000),
     {"volstep", &volstep, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
     {"volume", &start_volume, CONF_TYPE_FLOAT, CONF_RANGE, -1, 10000, NULL},
     OPT_MAKE_FLAGS("gapless-audio", gapless_audio, 0),
@@ -804,6 +804,7 @@ const m_option_t mplayer_opts[]={
 
     {"grabpointer", &vo_grabpointer, CONF_TYPE_FLAG, 0, 0, 1, NULL},
     {"nograbpointer", &vo_grabpointer, CONF_TYPE_FLAG, 0, 1, 0, NULL},
+    OPT_INTRANGE("cursor-autohide-delay", cursor_autohide_delay, 0, -2, 30000),
 
     {"adapter", &vo_adapter_num, CONF_TYPE_INT, CONF_RANGE, 0, 5, NULL},
     {"refreshrate",&vo_refresh_rate,CONF_TYPE_INT,CONF_RANGE, 0,100, NULL},

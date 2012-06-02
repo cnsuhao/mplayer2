@@ -120,7 +120,7 @@ extern struct vo_driver video_out_tdfx_vid;
 extern struct vo_driver video_out_xvr100;
 extern struct vo_driver video_out_tga;
 extern struct vo_driver video_out_corevideo;
-extern struct vo_driver video_out_quartz;
+extern struct vo_driver video_out_sharedbuffer;
 extern struct vo_driver video_out_pnm;
 extern struct vo_driver video_out_md5sum;
 
@@ -141,11 +141,11 @@ const struct vo_driver *video_out_drivers[] =
 #ifdef CONFIG_KVA
         &video_out_kva,
 #endif
+#ifdef CONFIG_GL_COCOA
+        &video_out_gl,
+#endif
 #ifdef CONFIG_COREVIDEO
         &video_out_corevideo,
-#endif
-#ifdef CONFIG_QUARTZ
-        &video_out_quartz,
 #endif
 #ifdef CONFIG_XMGA
         &video_out_xmga,
@@ -181,8 +181,11 @@ const struct vo_driver *video_out_drivers[] =
 #ifdef CONFIG_SDL
         &video_out_sdl,
 #endif
-#ifdef CONFIG_GL
+#if (defined CONFIG_GL && !defined CONFIG_GL_COCOA)
         &video_out_gl,
+#endif
+#ifdef CONFIG_SHAREDBUFFER
+        &video_out_sharedbuffer,
 #endif
 #ifdef CONFIG_GL_SDL
         &video_out_gl_sdl,
@@ -379,6 +382,7 @@ void vo_seek_reset(struct vo *vo)
 {
     vo_control(vo, VOCTRL_RESET, NULL);
     vo->frame_loaded = false;
+    vo->hasframe = false;
 }
 
 void vo_destroy(struct vo *vo)

@@ -1,4 +1,6 @@
 /*
+ * Cocoa Event Handling
+ *
  * This file is part of mplayer2.
  *
  * mplayer2 is free software; you can redistribute it and/or modify
@@ -12,16 +14,17 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
- * with mplayer2; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * with mplayer2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MPLAYER_MACOSX_FINDER_ARGS_H
-#define MPLAYER_MACOSX_FINDER_ARGS_H
+#ifndef MPLAYER_COCOA_EVENTS_H
+#define MPLAYER_COCOA_EVENTS_H
 
-#include "m_config.h"
-#include "playtree.h"
+#include "input/input.h"
 
-play_tree_t *macosx_finder_args(m_config_t *config, int argc, char **argv);
+void cocoa_events_init(struct input_ctx *ictx,
+    void (*read_all_fd_events)(struct input_ctx *ictx, int time));
+void cocoa_events_uninit(void);
+void cocoa_events_read_all_events(struct input_ctx *ictx, int time);
 
-#endif /* MPLAYER_MACOSX_FINDER_ARGS_H */
+#endif /* MPLAYER_COCOA_EVENTS_H */

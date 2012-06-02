@@ -55,6 +55,7 @@ extern const struct ao_driver audio_out_v4l2;
 extern const struct ao_driver audio_out_mpegpes;
 extern const struct ao_driver audio_out_pcm;
 extern const struct ao_driver audio_out_pss;
+extern const struct ao_driver audio_out_portaudio;
 
 static const struct ao_driver * const audio_out_drivers[] = {
 #ifdef CONFIG_OPENAL
@@ -85,19 +86,13 @@ static const struct ao_driver * const audio_out_drivers[] = {
 #ifdef CONFIG_OSS_AUDIO
     &audio_out_oss,
 #endif
-#ifdef CONFIG_SGI_AUDIO
-    &audio_out_sgi,
+#ifdef CONFIG_PORTAUDIO
+    &audio_out_portaudio,
 #endif
 #ifdef CONFIG_SUN_AUDIO
     &audio_out_sun,
 #endif
     // wrappers:
-#ifdef CONFIG_ARTS
-    &audio_out_arts,
-#endif
-#ifdef CONFIG_ESD
-    &audio_out_esd,
-#endif
 #ifdef CONFIG_JACK
     &audio_out_jack,
 #endif
@@ -136,10 +131,11 @@ void list_audio_out(void)
     mp_msg(MSGT_GLOBAL, MSGL_INFO,"\n");
 }
 
-struct ao *ao_create(void)
+struct ao *ao_create(struct MPOpts *opts, struct input_ctx *input)
 {
     struct ao *r = talloc(NULL, struct ao);
-    *r = (struct ao){.outburst = OUTBURST, .buffersize = -1};
+    *r = (struct ao){.outburst = OUTBURST, .buffersize = -1,
+                     .opts = opts, .input_ctx = input };
     return r;
 }
 
@@ -231,7 +227,7 @@ int ao_play(struct ao *ao, void *data, int len, int flags)
     return ao->driver->play(ao, data, len, flags);
 }
 
-int ao_control(struct ao *ao, int cmd, void *arg)
+int ao_control(struct ao *ao, enum aocontrol cmd, void *arg)
 {
     if (ao->driver->control)
         return ao->driver->control(ao, cmd, arg);
@@ -298,7 +294,7 @@ int old_ao_play(struct ao *ao, void *data, int len, int flags)
     return ao->driver->old_functions->play(data, len, flags);
 }
 
-int old_ao_control(struct ao *ao, int cmd, void *arg)
+int old_ao_control(struct ao *ao, enum aocontrol cmd, void *arg)
 {
     return ao->driver->old_functions->control(cmd, arg);
 }

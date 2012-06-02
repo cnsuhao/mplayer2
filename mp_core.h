@@ -188,8 +188,6 @@ typedef struct MPContext {
 
     float begin_skip; ///< start time of the current skip while on edlout mode
 
-    short user_muted; ///< Stores whether user wanted muted mode.
-
     int global_sub_size; // this encompasses all subtitle sources
     int global_sub_pos; // this encompasses all subtitle sources
     int set_of_sub_pos;
@@ -255,8 +253,7 @@ char *chapter_display_name(struct MPContext *mpctx, int chapter);
 char *chapter_name(struct MPContext *mpctx, int chapter);
 double chapter_start_time(struct MPContext *mpctx, int chapter);
 int get_chapter_count(struct MPContext *mpctx);
-void update_subtitles(struct MPContext *mpctx, double refpts,
-                      double sub_offset, bool reset);
+void update_subtitles(struct MPContext *mpctx, double refpts, bool reset);
 
 
 // timeline/tl_matroska.c

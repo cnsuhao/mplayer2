@@ -1,4 +1,6 @@
 /*
+ * OSX Shared Buffer Video Output (extracted from mplayer's corevideo)
+ *
  * This file is part of mplayer2.
  *
  * mplayer2 is free software; you can redistribute it and/or modify
@@ -12,16 +14,24 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along
- * with mplayer2; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * with mplayer2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MPLAYER_MACOSX_FINDER_ARGS_H
-#define MPLAYER_MACOSX_FINDER_ARGS_H
+#ifndef MPLAYER_VO_OSX_SHAREDBUFFER_H
+#define MPLAYER_VO_OSX_SHAREDBUFFER_H
 
-#include "m_config.h"
-#include "playtree.h"
+#import <Cocoa/Cocoa.h>
 
-play_tree_t *macosx_finder_args(m_config_t *config, int argc, char **argv);
+// Protocol to communicate with the GUI
+@protocol MPlayerOSXVOProto
+- (int) startWithWidth: (bycopy int)width
+            withHeight: (bycopy int)height
+             withBytes: (bycopy int)bytes
+            withAspect: (bycopy int)aspect;
+- (void) stop;
+- (void) render;
+- (void) toggleFullscreen;
+- (void) ontop;
+@end
 
-#endif /* MPLAYER_MACOSX_FINDER_ARGS_H */
+#endif /* MPLAYER_VO_OSX_SHAREDBUFFER_H */

@@ -24,7 +24,7 @@
 #include "config.h"
 
 //#define HAVE_TERMCAP
-#if !defined(__OS2__) && !defined(__MORPHOS__)
+#if !defined(__MORPHOS__)
 #define CONFIG_IOCTL
 #endif
 
@@ -57,6 +57,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "bstr.h"
 #include "mp_fifo.h"
 #include "input/keycodes.h"
 #include "getch2.h"
@@ -157,11 +158,17 @@ void get_screen_size(void){
 #endif
 }
 
-void getch2(struct mp_fifo *fifo)
+bool getch2(struct mp_fifo *fifo)
 {
     int retval = read(0, &getch2_buf[getch2_len], BUF_LEN-getch2_len);
+    /* Return false on EOF to stop running select() on the FD, as it'd
+     * trigger all the time. Note that it's possible to get temporary
+     * EOF on terminal if the user presses ctrl-d, but that shouldn't
+     * happen if the terminal state change done in getch2_enable()
+     * works.
+     */
     if (retval < 1)
-        return;
+        return retval;
     getch2_len += retval;
 
     while (getch2_len > 0 && (getch2_len > 1 || getch2_buf[0] != 27)) {
@@ -201,6 +208,16 @@ void getch2(struct mp_fifo *fifo)
                         len = 2;
                 }
                 code = KEY_ENTER;
+            } else {
+                int utf8len = bstr_parse_utf8_code_length(code);
+                if (utf8len > 0 && utf8len <= getch2_len) {
+                    struct bstr s = { getch2_buf, utf8len };
+                    int unicode = bstr_decode_utf8(s, NULL);
+                    if (unicode > 0) {
+                        len = utf8len;
+                        code = unicode;
+                    }
+                }
             }
         }
         else if (getch2_len > 1) {
@@ -225,7 +242,7 @@ void getch2(struct mp_fifo *fifo)
             }
             if ((c == '[' || c == 'O') && getch2_len >= 3) {
                 int c = getch2_buf[2];
-                const short ctable[] = {
+                const int ctable[] = {
                     KEY_UP, KEY_DOWN, KEY_RIGHT, KEY_LEFT, 0,
                     KEY_END, KEY_PGDWN, KEY_HOME, KEY_PGUP, 0, 0, KEY_INS, 0, 0, 0,
                     KEY_F+1, KEY_F+2, KEY_F+3, KEY_F+4};
@@ -268,6 +285,7 @@ void getch2(struct mp_fifo *fifo)
             getch2_buf[i] = getch2_buf[len+i];
         mplayer_put_key(fifo, code);
     }
+    return true;
 }
 
 static int getch2_status=0;
