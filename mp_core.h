@@ -90,6 +90,7 @@ typedef struct MPContext {
     struct mp_fifo *key_fifo;
     struct input_ctx *input;
     struct osd_state *osd;
+    char *terminal_osd_text;
     struct sub_data *subdata; // current sub_data style subtitles if any
     // last sub_data style sub line if any, used by log_sub() only
     struct subtitle *vo_sub_last;
@@ -260,5 +261,7 @@ void update_subtitles(struct MPContext *mpctx, double refpts, bool reset);
 void build_ordered_chapter_timeline(struct MPContext *mpctx);
 // timeline/tl_edl.c
 void build_edl_timeline(struct MPContext *mpctx);
+// timeline/tl_cue.c
+void build_cue_timeline(struct MPContext *mpctx);
 
 #endif /* MPLAYER_MP_CORE_H */

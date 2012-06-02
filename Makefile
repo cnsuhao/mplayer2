@@ -370,6 +370,7 @@ SRCS_COMMON = asxparser.c \
               libmpdemux/demux_avi.c \
               libmpdemux/demux_demuxers.c \
               libmpdemux/demux_edl.c \
+              libmpdemux/demux_cue.c \
               libmpdemux/demux_film.c \
               libmpdemux/demux_fli.c \
               libmpdemux/demux_lavf.c \
@@ -404,6 +405,7 @@ SRCS_COMMON = asxparser.c \
               libmpdemux/yuv4mpeg.c \
               libmpdemux/yuv4mpeg_ratio.c \
               libvo/osd.c \
+              libvo/eosd_packer.c \
               osdep/numcores.c \
               osdep/io.c \
               osdep/$(GETCH) \
@@ -428,6 +430,7 @@ SRCS_COMMON = asxparser.c \
               sub/vobsub.c \
               timeline/tl_edl.c \
               timeline/tl_matroska.c \
+              timeline/tl_cue.c \
               $(SRCS_COMMON-yes)
 
 
@@ -449,7 +452,7 @@ SRCS_MPLAYER-$(DXR3)         += libvo/vo_dxr3.c
 SRCS_MPLAYER-$(FBDEV)        += libvo/vo_fbdev.c libvo/vo_fbdev2.c
 SRCS_MPLAYER-$(GGI)          += libvo/vo_ggi.c
 SRCS_MPLAYER-$(GIF)          += libvo/vo_gif89a.c
-SRCS_MPLAYER-$(GL)           += libvo/gl_common.c libvo/vo_gl.c \
+SRCS_MPLAYER-$(GL)           += libvo/gl_common.c libvo/vo_gl.c libvo/vo_gl3.c \
                                 pnm_loader.c
 SRCS_MPLAYER-$(GL_SDL)       += libvo/sdl_common.c
 SRCS_MPLAYER-$(GL_WIN32)     += libvo/w32_common.c
@@ -504,6 +507,7 @@ SRCS_MPLAYER = command.c \
                libao2/audio_out.c \
                libvo/aspect.c \
                libvo/csputils.c \
+               libvo/filter_kernels.c \
                libvo/geometry.c \
                libvo/old_vo_wrapper.c \
                libvo/spuenc.c \
@@ -598,6 +602,11 @@ codec-cfg$(EXESUF): codec-cfg.c codec-cfg.h
 
 codecs.conf.h: codec-cfg$(EXESUF) etc/codecs.conf
 	./$^ > $@
+
+libvo/vo_gl3_shaders.h: libvo/vo_gl3_shaders.glsl
+	python ./bin_to_header.py $^ $@
+
+libvo/vo_gl3.c: libvo/vo_gl3_shaders.h
 
 # ./configure must be rerun if it changed
 config.mak: configure

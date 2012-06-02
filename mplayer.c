@@ -92,7 +92,6 @@
 #include "sub/av_sub.h"
 #include "libmpcodecs/dec_teletext.h"
 #include "cpudetect.h"
-#include "version.h"
 
 #ifdef CONFIG_X11
 #include "libvo/x11_common.h"
@@ -545,9 +544,10 @@ static void print_file_properties(struct MPContext *mpctx, const char *filename)
         mp_msg(MSGT_IDENTIFY, MSGL_INFO, "ID_CHAPTERS=%d\n", chapter_count);
         for (int i = 0; i < chapter_count; i++) {
             mp_msg(MSGT_IDENTIFY, MSGL_INFO, "ID_CHAPTER_ID=%d\n", i);
-            // in milliseconds
-            mp_msg(MSGT_IDENTIFY, MSGL_INFO, "ID_CHAPTER_%d_START=%"PRIu64"\n",
-                   i, (int64_t)(chapter_start_time(mpctx, i) * 1000.0));
+            // print in milliseconds
+            double time = chapter_start_time(mpctx, i) * 1000.0;
+            mp_msg(MSGT_IDENTIFY, MSGL_INFO, "ID_CHAPTER_%d_START=%"PRId64"\n",
+                   i, (int64_t)(time < 0 ? -1 : time));
             char *name = chapter_name(mpctx, i);
             if (name) {
                 mp_msg(MSGT_IDENTIFY, MSGL_INFO, "ID_CHAPTER_%d_NAME=%s\n", i,
@@ -692,6 +692,7 @@ void uninit_player(struct MPContext *mpctx, unsigned int mask)
             ao_uninit(mpctx->ao, mpctx->stop_play != AT_END_OF_FILE);
         }
         mpctx->ao = NULL;
+        mpctx->mixer.ao = NULL;
     }
 
     current_module = NULL;
@@ -1629,7 +1630,7 @@ void set_osd_bar(struct MPContext *mpctx, int type, const char *name,
     if (opts->osd_level < 1)
         return;
 
-    if (mpctx->sh_video) {
+    if (mpctx->sh_video && opts->term_osd != 1) {
         mpctx->osd_visible = (GetTimerMS() + 1000) | 1;
         vo_osd_progbar_type = type;
         vo_osd_progbar_value = 256 * (val - min) / (max - min);
@@ -1705,26 +1706,30 @@ static void update_osd_msg(struct MPContext *mpctx)
     if (mpctx->add_osd_seek_info) {
         double percentage = get_percent_pos(mpctx);
         set_osd_bar(mpctx, 0, "Position", 0, 100, percentage);
-        if (mpctx->sh_video)
+        if (mpctx->sh_video && opts->term_osd != 1)
             mpctx->osd_show_percentage_until = (GetTimerMS() + 1000) | 1;
         mpctx->add_osd_seek_info = false;
     }
 
     // Look if we have a msg
     if ((msg = get_osd_msg(mpctx))) {
-        if (strcmp(osd->osd_text, msg->msg)) {
-            osd_set_text(osd, msg->msg);
-            if (mpctx->sh_video)
+        if (mpctx->sh_video && opts->term_osd != 1) {
+            if (strcmp(osd->osd_text, msg->msg)) {
+                osd_set_text(osd, msg->msg);
                 vo_osd_changed(OSDTYPE_OSD);
-            else if (opts->term_osd) {
+            }
+        } else if (opts->term_osd) {
+            if (strcmp(mpctx->terminal_osd_text, msg->msg)) {
+                talloc_free(mpctx->terminal_osd_text);
+                mpctx->terminal_osd_text = talloc_strdup(mpctx, msg->msg);
                 term_osd_eraseline();
-                mp_msg(MSGT_CPLAYER, MSGL_STATUS, "%s\n", msg->msg);
+                mp_msg(MSGT_CPLAYER, MSGL_STATUS, "%s\n", mpctx->terminal_osd_text);
             }
         }
         return;
     }
 
-    if (mpctx->sh_video) {
+    if (mpctx->sh_video && opts->term_osd != 1) {
         // fallback on the timer
         if (opts->osd_level >= 2) {
             int len = get_time_length(mpctx);
@@ -1789,8 +1794,8 @@ static void update_osd_msg(struct MPContext *mpctx)
     }
 
     // Clear the term osd line
-    if (opts->term_osd && osd->osd_text[0]) {
-        osd->osd_text[0] = 0;
+    if (opts->term_osd && mpctx->terminal_osd_text[0]) {
+        mpctx->terminal_osd_text[0] = '\0';
         term_osd_eraseline();
         mp_msg(MSGT_CPLAYER, MSGL_STATUS, "\n");
     }
@@ -3882,9 +3887,10 @@ static int select_audio(demuxer_t *demuxer, int audio_id, char **audio_lang)
     return demuxer->audio->id;
 }
 
-static void print_version(const char *name)
+static void print_version(void)
 {
-    mp_msg(MSGT_CPLAYER, MSGL_INFO, MP_TITLE, name);
+    mp_msg(MSGT_CPLAYER, MSGL_INFO,
+           "%s (C) 2000-2012 MPlayer & mplayer2 teams\n", mplayer_version);
 
     /* Test for CPU capabilities (and corresponding OS support) for optimizing */
     GetCpuCaps(&gCpuCaps);
@@ -3964,6 +3970,7 @@ int main(int argc, char *argv[])
         .file_format = DEMUXER_TYPE_UNKNOWN,
         .last_dvb_step = 1,
         .paused_cache_fill = -1,
+        .terminal_osd_text = talloc_strdup(mpctx, ""),
     };
 
     InitTimer();
@@ -3971,6 +3978,7 @@ int main(int argc, char *argv[])
 
     mp_msg_init();
     init_libav();
+    screenshot_init(mpctx);
 
 #ifdef CONFIG_X11
     mpctx->x11_state = vo_x11_init_state();
@@ -4016,7 +4024,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    print_version("MPlayer2");
+    print_version();
 
 #if defined(__MINGW32__) || defined(__CYGWIN__)
     {
@@ -4612,6 +4620,9 @@ goto_enable_cache:
     if (mpctx->demuxer->type == DEMUXER_TYPE_EDL)
         build_edl_timeline(mpctx);
 
+    if (mpctx->demuxer->type == DEMUXER_TYPE_CUE)
+        build_cue_timeline(mpctx);
+
     if (mpctx->timeline) {
         mpctx->timeline_part = 0;
         mpctx->demuxer = mpctx->timeline[0].source->demuxer;
@@ -4984,6 +4995,9 @@ goto_enable_cache:
     if (mpctx->sh_video)
         vo_control(mpctx->video_out,
                    mpctx->paused ? VOCTRL_PAUSE : VOCTRL_RESUME, NULL);
+
+    if (mpctx->opts.start_paused)
+        pause_player(mpctx);
 
     while (!mpctx->stop_play)
         run_playloop(mpctx);

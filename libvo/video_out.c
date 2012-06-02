@@ -87,7 +87,7 @@ extern struct vo_driver video_out_vdpau;
 extern struct vo_driver video_out_xv;
 extern struct vo_driver video_out_gl_nosw;
 extern struct vo_driver video_out_gl;
-extern struct vo_driver video_out_gl_sdl;
+extern struct vo_driver video_out_gl3;
 extern struct vo_driver video_out_dga;
 extern struct vo_driver video_out_sdl;
 extern struct vo_driver video_out_3dfx;
@@ -106,6 +106,7 @@ extern struct vo_driver video_out_caca;
 extern struct vo_driver video_out_mpegpes;
 extern struct vo_driver video_out_yuv4mpeg;
 extern struct vo_driver video_out_direct3d;
+extern struct vo_driver video_out_direct3d_shaders;
 extern struct vo_driver video_out_directx;
 extern struct vo_driver video_out_kva;
 extern struct vo_driver video_out_dxr3;
@@ -132,11 +133,12 @@ const struct vo_driver *video_out_drivers[] =
 #ifdef CONFIG_TDFX_VID
         &video_out_tdfx_vid,
 #endif
+#ifdef CONFIG_DIRECT3D
+        &video_out_direct3d_shaders,
+        &video_out_direct3d,
+#endif
 #ifdef CONFIG_DIRECTX
         &video_out_directx,
-#endif
-#ifdef CONFIG_DIRECT3D
-        &video_out_direct3d,
 #endif
 #ifdef CONFIG_KVA
         &video_out_kva,
@@ -171,24 +173,18 @@ const struct vo_driver *video_out_drivers[] =
 #ifdef CONFIG_XV
         &video_out_xv,
 #endif
-#ifdef CONFIG_X11
 #ifdef CONFIG_GL
-        &video_out_gl_nosw,
+        &video_out_gl3,
+#if !defined CONFIG_GL_COCOA
+        &video_out_gl,
 #endif
+#endif
+#ifdef CONFIG_X11
         &video_out_x11,
         &video_out_xover,
 #endif
 #ifdef CONFIG_SDL
         &video_out_sdl,
-#endif
-#if (defined CONFIG_GL && !defined CONFIG_GL_COCOA)
-        &video_out_gl,
-#endif
-#ifdef CONFIG_SHAREDBUFFER
-        &video_out_sharedbuffer,
-#endif
-#ifdef CONFIG_GL_SDL
-        &video_out_gl_sdl,
 #endif
 #ifdef CONFIG_DGA
         &video_out_dga,
@@ -229,6 +225,9 @@ const struct vo_driver *video_out_drivers[] =
 #endif
         &video_out_null,
         // should not be auto-selected
+#ifdef CONFIG_SHAREDBUFFER
+        &video_out_sharedbuffer,
+#endif
 #ifdef CONFIG_DIRECTFB
         // vo directfb can call exit() if initialization fails
         &video_out_directfb,
@@ -252,6 +251,11 @@ const struct vo_driver *video_out_drivers[] =
 #endif
 #ifdef CONFIG_MD5SUM
         &video_out_md5sum,
+#endif
+#ifdef CONFIG_X11
+#ifdef CONFIG_GL
+        &video_out_gl_nosw,
+#endif
 #endif
         NULL
 };

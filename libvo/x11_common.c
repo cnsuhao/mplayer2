@@ -1020,7 +1020,8 @@ static void vo_x11_set_property_string(struct vo *vo, Atom name, const char *t)
     XTextProperty prop = {0};
 
     if (Xutf8TextListToTextProperty(x11->display, (char **)&t, 1,
-                                    XStdICCTextStyle, &prop) == Success) {
+                                    XStdICCTextStyle, &prop) == Success)
+    {
         XSetTextProperty(x11->display, x11->window, &prop, name);
     } else {
         // Strictly speaking this violates the ICCCM, but there's no way we

@@ -52,6 +52,7 @@ enum mp_command_type {
     MP_CMD_MUTE,
     MP_CMD_LOADFILE,
     MP_CMD_LOADLIST,
+    MP_CMD_PLAY_TREE_CLEAR,
     MP_CMD_VF_CHANGE_RECTANGLE,
     MP_CMD_GAMMA,
     MP_CMD_SUB_VISIBILITY,
@@ -193,7 +194,6 @@ typedef struct mp_cmd {
     struct mp_cmd_arg args[MP_CMD_MAX_ARGS];
     int nargs;
     int pausing;
-    struct mp_cmd *queue_prev;
     struct mp_cmd *queue_next;
 } mp_cmd_t;
 

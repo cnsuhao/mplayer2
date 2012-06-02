@@ -193,6 +193,7 @@ static const mp_cmd_t mp_cmds[] = {
   { MP_CMD_SWITCH_VSYNC, "switch_vsync", { OARG_INT(0) } },
   { MP_CMD_LOADFILE, "loadfile", { ARG_STRING, OARG_INT(0) } },
   { MP_CMD_LOADLIST, "loadlist", { ARG_STRING, OARG_INT(0) } },
+  { MP_CMD_PLAY_TREE_CLEAR, "pt_clear", },
   { MP_CMD_RUN, "run", { ARG_STRING } },
   { MP_CMD_CAPTURING, "capturing", },
   { MP_CMD_VF_CHANGE_RECTANGLE, "change_rectangle", { ARG_INT, ARG_INT } },
@@ -583,9 +584,6 @@ struct cmd_bind_section {
 
 struct cmd_queue {
     struct mp_cmd *first;
-    struct mp_cmd *last;
-    int num_cmds;
-    int num_abort_cmds;
 };
 
 struct input_ctx {
@@ -719,32 +717,52 @@ static bool is_abort_cmd(int cmd_id)
     return false;
 }
 
+static int queue_count_cmds(struct cmd_queue *queue)
+{
+    int res = 0;
+    for (struct mp_cmd *cmd = queue->first; cmd; cmd = cmd->queue_next)
+        res++;
+    return res;
+}
+
+static bool queue_has_abort_cmds(struct cmd_queue *queue)
+{
+    for (struct mp_cmd *cmd = queue->first; cmd; cmd = cmd->queue_next) {
+        if (is_abort_cmd(cmd->id))
+            return true;
+    }
+    return false;
+}
+
+static void queue_remove(struct cmd_queue *queue, struct mp_cmd *cmd)
+{
+    struct mp_cmd **p_prev = &queue->first;
+    while (*p_prev != cmd) {
+        p_prev = &(*p_prev)->queue_next;
+    }
+    // if this fails, cmd was not in the queue
+    assert(*p_prev == cmd);
+    *p_prev = cmd->queue_next;
+}
+
 static void queue_pop(struct cmd_queue *queue)
 {
-    assert(queue->num_cmds > 0);
-    struct mp_cmd *cmd = queue->first;
-    queue->first = cmd->queue_next;
-    queue->num_cmds--;
-    queue->num_abort_cmds -= is_abort_cmd(cmd->id);
+    queue_remove(queue, queue->first);
 }
 
 static void queue_add(struct cmd_queue *queue, struct mp_cmd *cmd,
                       bool at_head)
 {
-    if (!queue->num_cmds) {
-        queue->first = cmd;
-        queue->last = cmd;
-    } else if (at_head) {
-        queue->first->queue_prev = cmd;
+    if (at_head) {
         cmd->queue_next = queue->first;
         queue->first = cmd;
     } else {
-        queue->last->queue_next = cmd;
-        cmd->queue_prev = queue->last;
-        queue->last = cmd;
+        struct mp_cmd **p_prev = &queue->first;
+        while (*p_prev)
+            p_prev = &(*p_prev)->queue_next;
+        *p_prev = cmd;
+        cmd->queue_next = NULL;
     }
-    queue->num_cmds++;
-    queue->num_abort_cmds += is_abort_cmd(cmd->id);
 }
 
 int mp_input_add_cmd_fd(struct input_ctx *ictx, int fd, int select,
@@ -1316,8 +1334,8 @@ void mp_input_feed_key(struct input_ctx *ictx, int code)
     if (!cmd)
         return;
     struct cmd_queue *queue = &ictx->key_cmd_queue;
-    if (queue->num_cmds >= ictx->key_fifo_size &&
-            (!is_abort_cmd(cmd->id) || queue->num_abort_cmds))
+    if (queue_count_cmds(queue) >= ictx->key_fifo_size &&
+            (!is_abort_cmd(cmd->id) || queue_has_abort_cmds(queue)))
         return;
     queue_add(queue, cmd, false);
 }
@@ -1477,14 +1495,14 @@ mp_cmd_t *mp_input_get_cmd(struct input_ctx *ictx, int time, int peek_only)
     if (async_quit_request)
         return mp_input_parse_cmd("quit 1");
 
-    if (ictx->control_cmd_queue.num_cmds || ictx->key_cmd_queue.num_cmds)
+    if (ictx->control_cmd_queue.first || ictx->key_cmd_queue.first)
         time = 0;
     read_all_events(ictx, time);
     struct mp_cmd *ret;
     struct cmd_queue *queue = &ictx->control_cmd_queue;
-    if (!queue->num_cmds)
+    if (!queue->first)
         queue = &ictx->key_cmd_queue;
-    if (!queue->num_cmds) {
+    if (!queue->first) {
         ret = check_autorepeat(ictx);
         if (!ret)
             return NULL;
@@ -1950,8 +1968,8 @@ void mp_input_wakeup(struct input_ctx *ictx)
 int mp_input_check_interrupt(struct input_ctx *ictx, int time)
 {
     for (int i = 0; ; i++) {
-        if (async_quit_request || ictx->key_cmd_queue.num_abort_cmds ||
-                ictx->control_cmd_queue.num_abort_cmds) {
+        if (async_quit_request || queue_has_abort_cmds(&ictx->key_cmd_queue) ||
+                queue_has_abort_cmds(&ictx->control_cmd_queue)) {
             mp_tmsg(MSGT_INPUT, MSGL_WARN, "Received command to move to "
                    "another file. Aborting current processing.\n");
             return true;

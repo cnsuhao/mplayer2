@@ -107,6 +107,7 @@ static const unsigned int outfmt_list[]={
     IMGFMT_RGB32,
     IMGFMT_BGR24,
     IMGFMT_RGB24,
+    IMGFMT_GBRP,
     IMGFMT_RGB48LE,
     IMGFMT_RGB48BE,
     IMGFMT_BGR16,
@@ -141,6 +142,10 @@ static int preferred_conversions[][2] = {
     {IMGFMT_UYVY, IMGFMT_422P},
     {IMGFMT_422P, IMGFMT_YUY2},
     {IMGFMT_422P, IMGFMT_UYVY},
+    {IMGFMT_GBRP, IMGFMT_BGR24},
+    {IMGFMT_GBRP, IMGFMT_RGB24},
+    {IMGFMT_GBRP, IMGFMT_BGR32},
+    {IMGFMT_GBRP, IMGFMT_RGB32},
     {0, 0}
 };
 
@@ -704,7 +709,7 @@ void sws_getFlagsAndFilterFromCmdLine(int *flags, SwsFilter **srcFilterParam, Sw
 }
 
 // will use sws_flags & src_filter (from cmd line)
-struct SwsContext *sws_getContextFromCmdLine(int srcW, int srcH, int srcFormat, int dstW, int dstH, int dstFormat)
+static struct SwsContext *sws_getContextFromCmdLine2(int srcW, int srcH, int srcFormat, int dstW, int dstH, int dstFormat, int extraflags)
 {
 	int flags;
 	SwsFilter *dstFilterParam, *srcFilterParam;
@@ -715,7 +720,18 @@ struct SwsContext *sws_getContextFromCmdLine(int srcW, int srcH, int srcFormat, 
 	if (srcFormat == IMGFMT_RGB8 || srcFormat == IMGFMT_BGR8) sfmt = PIX_FMT_PAL8;
 	sws_getFlagsAndFilterFromCmdLine(&flags, &srcFilterParam, &dstFilterParam);
 
-	return sws_getContext(srcW, srcH, sfmt, dstW, dstH, dfmt, flags | get_sws_cpuflags(), srcFilterParam, dstFilterParam, NULL);
+	return sws_getContext(srcW, srcH, sfmt, dstW, dstH, dfmt, flags | extraflags | get_sws_cpuflags(), srcFilterParam, dstFilterParam, NULL);
+}
+
+struct SwsContext *sws_getContextFromCmdLine(int srcW, int srcH, int srcFormat, int dstW, int dstH, int dstFormat)
+{
+    return sws_getContextFromCmdLine2(srcW, srcH, srcFormat, dstW, dstH, dstFormat, 0);
+}
+
+struct SwsContext *sws_getContextFromCmdLine_hq(int srcW, int srcH, int srcFormat, int dstW, int dstH, int dstFormat)
+{
+    return sws_getContextFromCmdLine2(srcW, srcH, srcFormat, dstW, dstH, dstFormat,
+        SWS_FULL_CHR_H_INT | SWS_FULL_CHR_H_INP | SWS_ACCURATE_RND | SWS_BITEXACT);
 }
 
 /// An example of presets usage
