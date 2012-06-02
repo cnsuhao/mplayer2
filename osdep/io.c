@@ -18,7 +18,7 @@
  * with mplayer2.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 
 #include <windows.h>
 #include <wchar.h>

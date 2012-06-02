@@ -22,7 +22,7 @@
 
 #include <limits.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 #include <wchar.h>
 wchar_t *mp_from_utf8(void *talloc_ctx, const char *s);
 char *mp_to_utf8(void *talloc_ctx, const wchar_t *s);
