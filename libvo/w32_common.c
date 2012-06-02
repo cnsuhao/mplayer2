@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <limits.h>
 #include <assert.h>
+/* Needed for WM_XBUTTONDOWN, MONITOR_DEFAULTTOPRIMARY */
+#define _WIN32_WINNT 0x0500
 #include <windows.h>
 #include <windowsx.h>
 
