@@ -45,6 +45,7 @@
 #undef update_xinerama_info
 #endif
 #include <GL/gl.h>
+#include <GL/glext.h>
 
 // workaround for some gl.h headers
 #ifndef GLAPIENTRY
